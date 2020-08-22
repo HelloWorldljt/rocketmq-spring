@@ -1,6 +1,9 @@
 package org.apache.rocketmq.spring.autoconfigure;
 
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.rocketmq.spring.domain.num.MsgType;
+import org.apache.rocketmq.spring.domain.num.TroubleMsgStatus;
+import org.apache.rocketmq.spring.support.IntEnumHandler;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
@@ -18,7 +21,7 @@ import javax.sql.DataSource;
  * @date 2020/8/21 0021
  */
 @Configuration
-@MapperScan(basePackages = "org.apache.rocketmq.spring.dao",sqlSessionFactoryRef = "monitorSqlSessionFactory",sqlSessionTemplateRef = "monitorSqlSessionTemplate")
+@MapperScan(basePackages = "org.apache.rocketmq.spring.domain.dao",sqlSessionFactoryRef = "monitorSqlSessionFactory",sqlSessionTemplateRef = "monitorSqlSessionTemplate")
 public class MointorDataSourceConfiguration {
 
 
@@ -31,6 +34,8 @@ public class MointorDataSourceConfiguration {
     @Bean("monitorSqlSessionFactory")
     public SqlSessionFactory monitorSqlSessionFactory(@Qualifier("monitorDataSource")DataSource dataSource) throws Exception {
         SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+        //注册TypeHandlers
+        bean.setTypeHandlers(new IntEnumHandler(MsgType.class),new IntEnumHandler<>(TroubleMsgStatus.class));
         bean.setDataSource(dataSource);
         return bean.getObject();
     }
