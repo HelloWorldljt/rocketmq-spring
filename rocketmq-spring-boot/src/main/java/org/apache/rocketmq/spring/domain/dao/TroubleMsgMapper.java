@@ -1,8 +1,6 @@
 package org.apache.rocketmq.spring.domain.dao;
 
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 import org.apache.rocketmq.spring.domain.model.TroubleMsg;
 
 /**
@@ -19,5 +17,17 @@ public interface TroubleMsgMapper {
      * @return
      */
     @Select("select * from trouble_msg where id = #{id} ")
+    @Results(id = "baseResultMap",value = {
+            @Result(column = "id",property = "id"),
+            @Result(column = "msg_id",property = "msgId"),
+            @Result(column = "type",property = "type"),
+            @Result(column = "topic",property = "topic"),
+            @Result(column = "msg_property",property = "msgProperty"),
+            @Result(column = "msg_body",property = "msgBody"),
+            @Result(column = "send_time",property = "sendTime"),
+            @Result(column = "status",property = "status"),
+            @Result(column = "create_time",property = "createTime"),
+            @Result(column = "update_time",property = "updateTime"),
+    })
     TroubleMsg getById(@Param("id") int id);
 }
