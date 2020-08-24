@@ -17,30 +17,21 @@
 
 package org.apache.rocketmq.spring.core;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
 import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.client.producer.DefaultMQProducer;
-import org.apache.rocketmq.client.producer.MessageQueueSelector;
-import org.apache.rocketmq.client.producer.RequestCallback;
-import org.apache.rocketmq.client.producer.SendCallback;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.client.producer.TransactionMQProducer;
-import org.apache.rocketmq.client.producer.TransactionSendResult;
+import org.apache.rocketmq.client.producer.*;
 import org.apache.rocketmq.client.producer.selector.SelectMessageQueueByHash;
 import org.apache.rocketmq.common.message.MessageExt;
+import org.apache.rocketmq.spring.domain.service.TroubleMsgService;
 import org.apache.rocketmq.spring.support.RocketMQMessageConverter;
 import org.apache.rocketmq.spring.support.RocketMQUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
@@ -50,8 +41,16 @@ import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.MimeTypeUtils;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> implements InitializingBean, DisposableBean {
+public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> implements InitializingBean, DisposableBean, ApplicationContextAware {
     private static final Logger log = LoggerFactory.getLogger(RocketMQTemplate.class);
 
     private DefaultMQProducer producer;
@@ -61,6 +60,8 @@ public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> imp
     private MessageQueueSelector messageQueueSelector = new SelectMessageQueueByHash();
 
     private RocketMQMessageConverter rocketMQMessageConverter = new RocketMQMessageConverter();
+
+    private ApplicationContext ctx;
 
     public DefaultMQProducer getProducer() {
         return producer;
@@ -524,6 +525,9 @@ public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> imp
                 rocketMsg.setDelayTimeLevel(delayLevel);
             }
             SendResult sendResult = producer.send(rocketMsg, timeout);
+            if (true) {
+                troubleMsgService.insert(rocketMsg.getTopic(),rocketMsg.getProperties(),message.getPayload());
+            }
             long costTime = System.currentTimeMillis() - now;
             if (log.isDebugEnabled()) {
                 log.debug("send message cost: {} ms, msgId:{}", costTime, sendResult.getMsgId());
@@ -838,11 +842,13 @@ public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> imp
         sendOneWayOrderly(destination, message, hashKey);
     }
 
+    private TroubleMsgService troubleMsgService;
     @Override
     public void afterPropertiesSet() throws Exception {
         if (producer != null) {
             producer.start();
         }
+        troubleMsgService = this.ctx.getBean(TroubleMsgService.class);
     }
 
     @Override
@@ -949,5 +955,10 @@ public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> imp
             return actualTypeArguments[0];
         }
         return Object.class;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.ctx = applicationContext;
     }
 }

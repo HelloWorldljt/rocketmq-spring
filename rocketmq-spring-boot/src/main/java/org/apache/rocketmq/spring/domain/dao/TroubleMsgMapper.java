@@ -30,4 +30,13 @@ public interface TroubleMsgMapper {
             @Result(column = "update_time",property = "updateTime"),
     })
     TroubleMsg getById(@Param("id") int id);
+
+    /**
+     * 插入记录
+     * @param troubleMsg 发送失败消息实体
+     */
+    @Insert("insert into trouble_msg (msg_id,type,topic,msg_property,msg_body,send_time,status,create_time,update_time) " +
+            " value (#{msgId},#{type},#{topic} ,#{msgProperty} ,#{msgBody} ,#{sendTime} ,#{status} ,#{createTime} ,#{updateTime} )")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    void insert(TroubleMsg troubleMsg);
 }

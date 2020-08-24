@@ -15,8 +15,12 @@ public enum MsgType implements IntEnum {
     /**
      * 事务消息
      */
-    TRANS_LETTER(2,"事务消息");
+    TRANS_LETTER(2,"事务消息"),
 
+    /**
+     * 发送失败
+     */
+    SEND_FAIL(3,"发送失败");
 
     private int code;
     private String desc;
