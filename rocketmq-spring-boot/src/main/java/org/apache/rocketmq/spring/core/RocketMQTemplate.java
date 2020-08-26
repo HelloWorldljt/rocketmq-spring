@@ -27,11 +27,8 @@ import org.apache.rocketmq.spring.support.RocketMQUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.AopProxyUtils;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
@@ -50,7 +47,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> implements InitializingBean, DisposableBean, ApplicationContextAware {
+public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> implements InitializingBean, DisposableBean {
     private static final Logger log = LoggerFactory.getLogger(RocketMQTemplate.class);
 
     private DefaultMQProducer producer;
@@ -60,8 +57,6 @@ public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> imp
     private MessageQueueSelector messageQueueSelector = new SelectMessageQueueByHash();
 
     private RocketMQMessageConverter rocketMQMessageConverter = new RocketMQMessageConverter();
-
-    private ApplicationContext ctx;
 
     public DefaultMQProducer getProducer() {
         return producer;
@@ -960,10 +955,5 @@ public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> imp
             return actualTypeArguments[0];
         }
         return Object.class;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.ctx = applicationContext;
     }
 }
