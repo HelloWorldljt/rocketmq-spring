@@ -525,8 +525,8 @@ public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> imp
                 rocketMsg.setDelayTimeLevel(delayLevel);
             }
             SendResult sendResult = producer.send(rocketMsg, timeout);
-            if (true) {
-                troubleMsgService.insert(rocketMsg.getTopic(),rocketMsg.getProperties(),message.getPayload());
+            if (sendResult.getSendStatus() != SendStatus.SEND_OK) {
+                troubleMsgService.insert(rocketMsg.getTopic(),rocketMsg.getProperties(),message.getPayload(),sendResult.getSendStatus());
             }
             long costTime = System.currentTimeMillis() - now;
             if (log.isDebugEnabled()) {
@@ -843,12 +843,17 @@ public class RocketMQTemplate extends AbstractMessageSendingTemplate<String> imp
     }
 
     private TroubleMsgService troubleMsgService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         if (producer != null) {
             producer.start();
         }
-        troubleMsgService = this.ctx.getBean(TroubleMsgService.class);
+    }
+
+
+    public void setTroubleMsgService(TroubleMsgService troubleMsgService){
+        this.troubleMsgService = troubleMsgService;
     }
 
     @Override

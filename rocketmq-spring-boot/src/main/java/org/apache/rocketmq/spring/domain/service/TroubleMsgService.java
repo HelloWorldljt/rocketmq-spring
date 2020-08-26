@@ -1,11 +1,13 @@
 package org.apache.rocketmq.spring.domain.service;
 
 import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.domain.dao.TroubleMsgMapper;
 import org.apache.rocketmq.spring.domain.model.TroubleMsg;
 import org.apache.rocketmq.spring.domain.num.MsgType;
 import org.apache.rocketmq.spring.domain.num.TroubleMsgStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,7 @@ import java.util.Map;
  */
 @Service
 public class TroubleMsgService {
+    private static final Logger log = LoggerFactory.getLogger(TroubleMsgService.class);
     @Autowired
     private TroubleMsgMapper troubleMsgMapper;
 
@@ -26,16 +29,23 @@ public class TroubleMsgService {
         return troubleMsgMapper.getById(id);
     }
 
-    public void insert(String topic, Map<String, String> properties, Object payload) {
-        TroubleMsg troubleMsg = new TroubleMsg();
-        troubleMsg.setType(MsgType.SEND_FAIL);
-        troubleMsg.setTopic(topic);
-        troubleMsg.setMsgBody(JSON.toJSONString(payload));
-        troubleMsg.setSendTime(new Date());
-        troubleMsg.setStatus(TroubleMsgStatus.TO_DO);
-        troubleMsg.setMsgProperty(JSON.toJSONString(properties));
-        troubleMsg.setCreateTime(new Date());
-        troubleMsg.setUpdateTime(new Date());
-        troubleMsgMapper.insert(troubleMsg);
+    public void insert(String topic, Map<String, String> properties, Object payload, SendStatus sendStatus) {
+        try {
+            log.info("monitor trouble msg service insert trouble msg param:topic:{},properties:{},payload:{},sendStatus:{}"
+                    ,topic,properties.toString(),JSON.toJSONString(payload),sendStatus);
+            TroubleMsg troubleMsg = new TroubleMsg();
+            troubleMsg.setType(MsgType.SEND_FAIL);
+            troubleMsg.setTopic(topic);
+            troubleMsg.setMsgBody(JSON.toJSONString(payload));
+            troubleMsg.setSendTime(new Date());
+            troubleMsg.setSendStatus(sendStatus);
+            troubleMsg.setStatus(TroubleMsgStatus.TO_DO);
+            troubleMsg.setMsgProperty(JSON.toJSONString(properties));
+            troubleMsg.setCreateTime(new Date());
+            troubleMsg.setUpdateTime(new Date());
+            troubleMsgMapper.insert(troubleMsg);
+        }catch (Exception e){
+            log.error("monitor trouble msg service insert trouble msg fail",e);
+        }
     }
 }

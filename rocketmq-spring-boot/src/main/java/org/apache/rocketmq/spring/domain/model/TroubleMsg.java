@@ -1,5 +1,6 @@
 package org.apache.rocketmq.spring.domain.model;
 
+import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.spring.domain.num.MsgType;
 import org.apache.rocketmq.spring.domain.num.TroubleMsgStatus;
 
@@ -18,11 +19,19 @@ public class TroubleMsg {
     private String msgProperty;
     private String msgBody;
     private Date sendTime;
+    private SendStatus sendStatus;
     private TroubleMsgStatus status;
 
     private Date createTime;
     private Date updateTime;
 
+    public SendStatus getSendStatus() {
+        return sendStatus;
+    }
+
+    public void setSendStatus(SendStatus sendStatus) {
+        this.sendStatus = sendStatus;
+    }
 
     public Integer getId() {
         return id;

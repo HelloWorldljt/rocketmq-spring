@@ -21,6 +21,7 @@ import org.apache.rocketmq.client.AccessChannel;
 import org.apache.rocketmq.client.MQAdmin;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.apache.rocketmq.spring.domain.service.TroubleMsgService;
 import org.apache.rocketmq.spring.support.RocketMQMessageConverter;
 import org.apache.rocketmq.spring.support.RocketMQUtil;
 import org.slf4j.Logger;
@@ -46,8 +47,8 @@ import javax.annotation.PostConstruct;
 @EnableConfigurationProperties(RocketMQProperties.class)
 @ConditionalOnClass({MQAdmin.class})
 @ConditionalOnProperty(prefix = "rocketmq", value = "name-server", matchIfMissing = true)
-@Import({MessageConverterConfiguration.class, ListenerContainerConfiguration.class, ExtProducerResetConfiguration.class, RocketMQTransactionConfiguration.class})
-@AutoConfigureAfter({MessageConverterConfiguration.class})
+@Import({MessageConverterConfiguration.class, ListenerContainerConfiguration.class, ExtProducerResetConfiguration.class, MointorDataSourceConfiguration.class})
+@AutoConfigureAfter({MessageConverterConfiguration.class,MointorDataSourceConfiguration.class})
 @AutoConfigureBefore({RocketMQTransactionConfiguration.class})
 public class RocketMQAutoConfiguration {
     private static final Logger log = LoggerFactory.getLogger(RocketMQAutoConfiguration.class);
@@ -101,13 +102,14 @@ public class RocketMQAutoConfiguration {
     }
 
     @Bean(destroyMethod = "destroy")
-    @ConditionalOnBean(DefaultMQProducer.class)
+    @ConditionalOnBean({DefaultMQProducer.class, TroubleMsgService.class})
     @ConditionalOnMissingBean(name = ROCKETMQ_TEMPLATE_DEFAULT_GLOBAL_NAME)
     public RocketMQTemplate rocketMQTemplate(DefaultMQProducer mqProducer,
-        RocketMQMessageConverter rocketMQMessageConverter) {
+        RocketMQMessageConverter rocketMQMessageConverter,TroubleMsgService troubleMsgService) {
         RocketMQTemplate rocketMQTemplate = new RocketMQTemplate();
         rocketMQTemplate.setProducer(mqProducer);
         rocketMQTemplate.setMessageConverter(rocketMQMessageConverter.getMessageConverter());
+        rocketMQTemplate.setTroubleMsgService(troubleMsgService);
         return rocketMQTemplate;
     }
 }
